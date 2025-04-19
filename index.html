@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Me - Book an Appointment</title>
+    <!-- Add these two script tags -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+      (function() {
+         emailjs.init("ZHs545mD00ddHprn-"); // Replace with your actual EmailJS user ID
+      })();
+    </script>	
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -363,48 +370,25 @@ function sendConfirmationEmail(name, email, date, time) {
     console.log("Starting email confirmation process...");
     console.log("Sending to:", email);
     
-    // Load EmailJS script dynamically
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/emailjs-com/3.2.0/email.min.js';
-    script.async = true;
-    
-    script.onload = function() {
-        console.log("EmailJS script loaded successfully");
-        
-        // Initialize EmailJS with your user ID
-        const userId = "ZHs545mD00ddHprn-"; // Replace with your actual ID
-        console.log("Initializing with user ID:", userId);
-        emailjs.init(userId);
-        
-        // Prepare template parameters
-        const templateParams = {
-            to_name: name,
-            to_email: email,
-            appointment_date: date,
-            appointment_time: time,
-            from_name: "Nithin"
-        };
-        
-        console.log("Template parameters:", templateParams);
-        
-        // Send the email
-        console.log("Attempting to send email with service:", "service_442v8ji", "template:", "template_b2bh3hi");
-        emailjs.send('service_442v8ji', 'template_b2bh3hi', templateParams)
-            .then(function(response) {
-                console.log('Email sent successfully!', response.status, response.text);
-                alert('Confirmation email sent successfully!');
-            }, function(error) {
-                console.log('Failed to send email...', error);
-                alert('There was an error sending your confirmation. Please check the console for details.');
-            });
+    // Prepare template parameters
+    const templateParams = {
+        to_name: name,
+        to_email: email,
+        appointment_date: date,
+        appointment_time: time,
+        from_name: "Nithin"
     };
     
-    script.onerror = function() {
-        console.error("Failed to load EmailJS script");
-        alert('Failed to load email service. Please try again later.');
-    };
+    console.log("Template parameters:", templateParams);
     
-    document.body.appendChild(script);
+    // Send the email
+    emailjs.send('service_442v8ji', 'template_b2bh3hi', templateParams)
+        .then(function(response) {
+            console.log('Email sent successfully!', response.status, response.text);
+        }, function(error) {
+            console.log('Failed to send email...', error);
+            alert('There was an error sending your confirmation. Please check the console for details.');
+        });
 }
     </script>
 </body>
