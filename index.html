@@ -359,38 +359,53 @@
         
         // Function to send confirmation email
         // This uses EmailJS to send emails directly from the frontend
-        function sendConfirmationEmail(name, email, date, time) {
-            // Load EmailJS script dynamically
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/emailjs-com/3.2.0/email.min.js';
-            script.async = true;
-            
-            script.onload = function() {
-                // Initialize EmailJS with your user ID
-                // You'll need to sign up at https://www.emailjs.com/
-                emailjs.init("ZHs545mD00ddHprn-");
-                
-                // Prepare template parameters
-                const templateParams = {
-                    to_name: name,
-                    to_email: email,
-                    appointment_date: date,
-                    appointment_time: time,
-                    from_name: "John Doe"
-                };
-                
-                // Send the email
-                emailjs.send('service_442v8ji', 'template_b2bh3hi', templateParams)
-                    .then(function(response) {
-                        console.log('Email sent successfully!', response.status, response.text);
-                    }, function(error) {
-                        console.log('Failed to send email...', error);
-                        alert('There was an error sending your confirmation. Please contact us directly.');
-                    });
-            };
-            
-            document.body.appendChild(script);
-        }
+function sendConfirmationEmail(name, email, date, time) {
+    console.log("Starting email confirmation process...");
+    console.log("Sending to:", email);
+    
+    // Load EmailJS script dynamically
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/emailjs-com/3.2.0/email.min.js';
+    script.async = true;
+    
+    script.onload = function() {
+        console.log("EmailJS script loaded successfully");
+        
+        // Initialize EmailJS with your user ID
+        const userId = "ZHs545mD00ddHprn-"; // Replace with your actual ID
+        console.log("Initializing with user ID:", userId);
+        emailjs.init(userId);
+        
+        // Prepare template parameters
+        const templateParams = {
+            to_name: name,
+            to_email: email,
+            appointment_date: date,
+            appointment_time: time,
+            from_name: "Nithin"
+        };
+        
+        console.log("Template parameters:", templateParams);
+        
+        // Send the email
+        console.log("Attempting to send email with service:", "service_442v8ji", "template:", "template_b2bh3hi");
+        emailjs.send('service_442v8ji', 'template_b2bh3hi', templateParams)
+            .then(function(response) {
+                console.log('Email sent successfully!', response.status, response.text);
+                alert('Confirmation email sent successfully!');
+            }, function(error) {
+                console.log('Failed to send email...', error);
+                alert('There was an error sending your confirmation. Please check the console for details.');
+            });
+    };
+    
+    script.onerror = function() {
+        console.error("Failed to load EmailJS script");
+        alert('Failed to load email service. Please try again later.');
+    };
+    
+    document.body.appendChild(script);
+}
     </script>
 </body>
 </html>
