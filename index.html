@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Me</title>
+    <title>About Me - Book an Appointment</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -30,11 +30,12 @@
             align-items: center;
             justify-content: center;
         }
-        .about-section {
+        .about-section, .booking-section {
             background-color: #f9f9f9;
             padding: 2rem;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
         }
         .skills {
             display: flex;
@@ -55,7 +56,97 @@
             font-size: 0.9rem;
             color: #7f8c8d;
         }
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        #bookingModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow: auto;
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .close {
+            float: right;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 1.5rem 0;
+        }
+        .time-slot {
+            background-color: #f0f0f0;
+            padding: 0.5rem;
+            text-align: center;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .time-slot:hover {
+            background-color: #e0e0e0;
+        }
+        .time-slot.selected {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .time-slot.booked {
+            background-color: #e74c3c;
+            color: white;
+            cursor: not-allowed;
+        }
+        .booking-step {
+            display: none;
+        }
+        .booking-step.active {
+            display: block;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        .confirmation {
+            text-align: center;
+        }
+        .confirmation i {
+            font-size: 3rem;
+            color: #2ecc71;
+            margin-bottom: 1rem;
+        }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
     <header>
@@ -85,10 +176,221 @@
             <span class="skill-tag">Git</span>
             <span class="skill-tag">Docker</span>
         </div>
+        
+        <button class="btn" id="bookBtn">Book an Appointment</button>
+    </div>
+
+    <!-- Modal for booking -->
+    <div id="bookingModal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            
+            <!-- Step 1: Select Date and Time -->
+            <div class="booking-step active" id="step1">
+                <h2>Select a Date & Time</h2>
+                <p>Choose a date:</p>
+                <input type="date" id="appointmentDate" min="" value="">
+                
+                <p>Available time slots:</p>
+                <div class="time-slots" id="timeSlots">
+                    <!-- Time slots will be generated dynamically -->
+                </div>
+                
+                <button class="btn" id="nextToStep2" disabled>Continue</button>
+            </div>
+            
+            <!-- Step 2: Contact Information -->
+            <div class="booking-step" id="step2">
+                <h2>Your Information</h2>
+                <form id="contactForm">
+                    <input type="text" id="name" placeholder="Your Name" required>
+                    <input type="email" id="email" placeholder="Email Address" required>
+                    <input type="tel" id="phone" placeholder="Phone Number" required>
+                    <textarea id="message" placeholder="Any specific topics you'd like to discuss?" rows="3"></textarea>
+                    
+                    <button type="submit" class="btn" id="confirmBooking">Confirm Booking</button>
+                </form>
+            </div>
+            
+            <!-- Step 3: Confirmation -->
+            <div class="booking-step" id="step3">
+                <div class="confirmation">
+                    <i class="fas fa-check-circle"></i>
+                    <h2>Appointment Confirmed!</h2>
+                    <p>Thank you for booking an appointment with me.</p>
+                    <p id="confirmationDetails"></p>
+                    <p>A confirmation email has been sent to your email address.</p>
+                    <button class="btn" id="closeConfirmation">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer>
         <p>© 2025 John Doe. All rights reserved.</p>
     </footer>
+
+    <script>
+        // Get current date for the date picker min attribute
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        document.getElementById('appointmentDate').min = formattedDate;
+        document.getElementById('appointmentDate').value = formattedDate;
+        
+        // Generate time slots for the selected date
+        function generateTimeSlots() {
+            const timeSlotsContainer = document.getElementById('timeSlots');
+            timeSlotsContainer.innerHTML = '';
+            
+            // Generate time slots from 9 AM to 5 PM
+            const startHour = 9;
+            const endHour = 17;
+            
+            for (let hour = startHour; hour < endHour; hour++) {
+                for (let minutes = 0; minutes < 60; minutes += 30) {
+                    const timeSlot = document.createElement('div');
+                    timeSlot.className = 'time-slot';
+                    
+                    // Format the time (e.g., "9:00 AM", "2:30 PM")
+                    const period = hour >= 12 ? 'PM' : 'AM';
+                    const displayHour = hour > 12 ? hour - 12 : hour;
+                    const displayMinutes = minutes === 0 ? '00' : minutes;
+                    
+                    timeSlot.textContent = `${displayHour}:${displayMinutes} ${period}`;
+                    
+                    // Randomly mark some slots as booked for demo purposes
+                    if (Math.random() < 0.3) {
+                        timeSlot.className = 'time-slot booked';
+                    } else {
+                        timeSlot.addEventListener('click', function() {
+                            // Remove selected class from all time slots
+                            document.querySelectorAll('.time-slot').forEach(slot => {
+                                if (!slot.classList.contains('booked')) {
+                                    slot.classList.remove('selected');
+                                }
+                            });
+                            
+                            // Add selected class to the clicked time slot
+                            this.classList.add('selected');
+                            
+                            // Enable the continue button
+                            document.getElementById('nextToStep2').disabled = false;
+                        });
+                    }
+                    
+                    timeSlotsContainer.appendChild(timeSlot);
+                }
+            }
+        }
+        
+        // Initialize time slots when the page loads
+        generateTimeSlots();
+        
+        // Update time slots when date changes
+        document.getElementById('appointmentDate').addEventListener('change', generateTimeSlots);
+        
+        // Open the booking modal
+        document.getElementById('bookBtn').addEventListener('click', function() {
+            document.getElementById('bookingModal').style.display = 'block';
+        });
+        
+        // Close the modal when clicking the X
+        document.querySelector('.close').addEventListener('click', function() {
+            document.getElementById('bookingModal').style.display = 'none';
+            resetBookingForm();
+        });
+        
+        // Move to step 2
+        document.getElementById('nextToStep2').addEventListener('click', function() {
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step2').classList.add('active');
+        });
+        
+        // Handle form submission
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const message = document.getElementById('message').value;
+            const date = document.getElementById('appointmentDate').value;
+            const selectedSlot = document.querySelector('.time-slot.selected');
+            const time = selectedSlot ? selectedSlot.textContent : '';
+            
+            // For a real implementation, you would send this data to your server
+            // Here we'll simulate sending the confirmation email
+            sendConfirmationEmail(name, email, date, time);
+            
+            // Display confirmation
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step3').classList.add('active');
+            
+            // Show appointment details
+            const dateObj = new Date(date);
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = dateObj.toLocaleDateString('en-US', options);
+            
+            document.getElementById('confirmationDetails').innerHTML = 
+                `Your appointment is scheduled for <strong>${formattedDate}</strong> at <strong>${time}</strong>.`;
+        });
+        
+        // Reset form and close modal after confirmation
+        document.getElementById('closeConfirmation').addEventListener('click', function() {
+            document.getElementById('bookingModal').style.display = 'none';
+            resetBookingForm();
+        });
+        
+        // Reset the booking form
+        function resetBookingForm() {
+            document.getElementById('step1').classList.add('active');
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step3').classList.remove('active');
+            document.getElementById('nextToStep2').disabled = true;
+            document.getElementById('contactForm').reset();
+            
+            // Remove selected class from time slots
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                if (!slot.classList.contains('booked')) {
+                    slot.classList.remove('selected');
+                }
+            });
+        }
+        
+        // Function to send confirmation email
+        // This uses EmailJS to send emails directly from the frontend
+        function sendConfirmationEmail(name, email, date, time) {
+            // Load EmailJS script dynamically
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/emailjs-com/3.2.0/email.min.js';
+            script.async = true;
+            
+            script.onload = function() {
+                // Initialize EmailJS with your user ID
+                // You'll need to sign up at https://www.emailjs.com/
+                emailjs.init("ZHs545mD00ddHprn-");
+                
+                // Prepare template parameters
+                const templateParams = {
+                    to_name: name,
+                    to_email: email,
+                    appointment_date: date,
+                    appointment_time: time,
+                    from_name: "John Doe"
+                };
+                
+                // Send the email
+                emailjs.send('service_442v8ji', 'template_b2bh3hi', templateParams)
+                    .then(function(response) {
+                        console.log('Email sent successfully!', response.status, response.text);
+                    }, function(error) {
+                        console.log('Failed to send email...', error);
+                        alert('There was an error sending your confirmation. Please contact us directly.');
+                    });
+            };
+            
+            document.body.appendChild(script);
+        }
+    </script>
 </body>
 </html>
